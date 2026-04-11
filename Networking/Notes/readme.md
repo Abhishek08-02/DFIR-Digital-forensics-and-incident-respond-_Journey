@@ -73,4 +73,49 @@ Essential for networking + cybersecurity
 ✔ Completed: TCP/IP layers, comparison with OSI, attacks
 📅 Day 2: Stronger networking understanding
 
-➡️ Next: Protocols (TCP vs UDP in depth)
+➡️ Next: Wireshark(First Real Capture)
+
+## 📘 Day 3 – Wireshark First Capture
+
+Today I performed my first real packet capture using **Wireshark** on my 
+WiFi interface and analysed live network traffic using DNS and TCP filters.
+
+### 🔑 Key Points
+- **Wireshark** is a network protocol analyser used to capture and inspect packets
+- **Display Filters** narrow down traffic to specific protocols
+- `dns` filter shows all DNS queries and responses
+- `tcp` filter shows all TCP connections and their states
+- DNS queries reveal every domain your machine communicates with
+
+### 🛠️ Practical (Lab Output)
+- Captured live traffic on WiFi interface
+- Applied `dns` filter — observed queries to:
+  - youtube.com, fonts.googleapis.com, fonts.gstatic.com
+  - googleleads.g.doubleclick.net, i.ytimg.com
+- Applied `tcp` filter — observed multiple TCP connections to port 443 (HTTPS)
+- Identified **SYN packets** (new connections) highlighted in the capture
+- Saw **ACK packets** confirming established connections
+
+### 🔍 DNS Observations
+- Queries go from my machine → DNS server (192.168.0.1)
+- Responses return resolved IP addresses
+- Example: `youtube.com` resolved to `192.178.211.136`
+- Both **A records** (IPv4) and **HTTPS records** were visible
+
+### ⚠️ Security View
+- DNS traffic is **unencrypted by default** — attackers can see every domain queried
+- Malware uses DNS to find C2 (Command & Control) servers
+- Unusual domains in DNS = first sign of infection
+- **Doubleclick.net** entries show ad-tracking activity
+
+### 📌 Summary
+- Wireshark captures real-time network traffic
+- DNS filter reveals browsing behaviour
+- TCP filter shows connection patterns
+- Every website visit generates multiple DNS queries + TCP connections
+
+---
+### 🚀 Progress
+✔ Completed: First live capture, DNS analysis, TCP observation  
+📅 Day 3: Hands-on with Wireshark  
+➡️ Next: TCP 3-Way Handshake (deep dive)
