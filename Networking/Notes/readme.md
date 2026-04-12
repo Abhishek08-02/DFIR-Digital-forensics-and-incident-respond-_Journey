@@ -119,3 +119,61 @@ WiFi interface and analysed live network traffic using DNS and TCP filters.
 ✔ Completed: First live capture, DNS analysis, TCP observation  
 📅 Day 3: Hands-on with Wireshark  
 ➡️ Next: TCP 3-Way Handshake (deep dive)
+
+## 📘 Day 4 – TCP 3-Way Handshake
+
+Today I studied the **TCP 3-Way Handshake** — how two hosts establish 
+a reliable connection before any data is exchanged.
+
+### 🔑 Key Points
+- TCP = connection-oriented, reliable Layer 4 protocol
+- Before data transfer, a connection must be established via handshake
+- **3 Steps:** SYN → SYN-ACK → ACK
+
+### 🔧 TCP Segment Structure
+| Field | Size | Purpose |
+|---|---|---|
+| Source Port | 16 bits | Sender's port |
+| Destination Port | 16 bits | Receiver's port |
+| Sequence Number | 32 bits | Tracks byte order |
+| Acknowledgement Number | 32 bits | Next expected byte |
+| Flags | 6 bits | SYN, ACK, FIN, RST, PSH, URG |
+| Window Size | 16 bits | Flow control |
+
+### 🚩 The 6 TCP Flags
+- **SYN** – Synchronise, initiate connection
+- **ACK** – Acknowledge, confirms receipt
+- **FIN** – Finish, close connection
+- **RST** – Reset, abruptly terminate
+- **PSH** – Push, send data immediately
+- **URG** – Urgent, priority data
+
+### 🤝 Handshake Steps
+- **Step 1 – SYN** (Client → Server): Seq=100, SYN=1, ACK=0
+- **Step 2 – SYN-ACK** (Server → Client): Seq=300, ACK=101
+- **Step 3 – ACK** (Client → Server): ACK=301, SYN=0
+- Connection is now **ESTABLISHED** ✅
+
+### 🛠️ Lab Output
+- Applied filter `tcp.flags.syn==1` in Wireshark
+- Found SYN-ACK packet (Packet 101)
+- Source Port: 443, Destination Port: 58512
+- Flags: 0x012 (SYN, ACK) confirmed
+- Acknowledgement number (raw): 2181824275
+
+### ⚠️ Security View (DFIR)
+- Every malware C2 connection starts with a SYN packet
+- Port scan = many SYNs with no completions
+- SYN flood = DoS attack
+- `tcp.flags.syn==1` is one of the most used forensics filters
+
+### 📌 Summary
+- TCP handshake = foundation of every network connection
+- Recognising SYN/SYN-ACK/ACK in Wireshark is a core analyst skill
+- Flags reveal the state and intent of every TCP connection
+
+---
+### 🚀 Progress
+✔ Completed: TCP structure, flags, handshake, Wireshark lab  
+📅 Day 4: Hands-on TCP analysis  
+➡️ Next: DNS Deep Dive
