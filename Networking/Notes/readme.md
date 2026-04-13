@@ -177,3 +177,78 @@ a reliable connection before any data is exchanged.
 ✔ Completed: TCP structure, flags, handshake, Wireshark lab  
 📅 Day 4: Hands-on TCP analysis  
 ➡️ Next: DNS Deep Dive
+
+## 📘 Day 5 – DNS Deep Dive
+
+Today I studied **DNS (Domain Name System)** — the internet's phone book,
+and how to analyse it in Wireshark for forensics investigations.
+
+### 🔑 Key Points
+- DNS translates domain names → IP addresses
+- Example: `google.com` → `142.250.195.42`
+- Every website visit generates multiple DNS queries
+
+### 📋 DNS Record Types
+| Record | Full Name | Purpose |
+|---|---|---|
+| A | Address | Domain → IPv4 address |
+| AAAA | IPv6 Address | Domain → IPv6 address |
+| MX | Mail Exchange | Where to send emails |
+| CNAME | Canonical Name | Alias → another domain |
+| NS | Name Server | Which server handles DNS |
+| TXT | Text | Verification, SPF records |
+| PTR | Pointer | Reverse DNS (IP → domain) |
+
+### 🔄 How DNS Works (9 Steps)
+1. Browser checks local cache
+2. Asks OS resolver (checks hosts file)
+3. Asks Recursive Resolver (router/ISP — 192.168.0.1)
+4. Resolver asks Root Name Server → "who handles .com?"
+5. Root replies → TLD Name Server (handles .com/.in/.org)
+6. TLD replies → Google's Authoritative Name Server
+7. Authoritative server replies with actual IP
+8. Resolver caches answer and sends back to machine
+9. Browser connects to that IP address
+
+### 🔁 Recursive vs Iterative
+| Type | Who does the work | Used by |
+|---|---|---|
+| Recursive | Resolver does all work | Your PC → Resolver |
+| Iterative | Each server points to next | Resolver → Root/TLD/Auth |
+
+### 🔍 DNS in Wireshark
+| Field | What it means |
+|---|---|
+| Transaction ID | Matches query to response (e.g. 0x8642) |
+| Query Type A | Asking for IPv4 address |
+| Query Name | Domain being looked up |
+| Response IP | IP address returned |
+| TTL | How long to cache the answer |
+
+### 🛠️ Lab Output
+- Applied `dns` filter in Wireshark
+- Found DNS response for `chromewebstore.googleapis.com`
+- Transaction ID: 0x22f5
+- Query Type: A, Class IN
+- Answer RRs: 4
+- Response time: 3.464 milliseconds
+- Observed queries to: google.com, gstatic.com,
+  safebrowsing.google.com, www.google.com
+
+### ⚠️ Security View (DFIR)
+- Every malware infection generates DNS queries to find C2 server
+- **DGA** = random-looking domains like `xkq7z3mpa.ru` = malware indicator
+- **DNS tunneling** = attackers hide data inside DNS queries to exfiltrate
+- High DNS query volume to one domain = beaconing
+- `dns` filter reveals everything your machine talks to, even in encrypted traffic
+
+### 📌 Summary
+- DNS is the first step in every network connection
+- The `dns` filter is the most important first step in any PCAP analysis
+- Malicious DNS traffic looks different from normal — DGA, beaconing, tunneling
+
+---
+### 🚀 Progress
+✔ Completed: DNS records, resolution flow, Wireshark DNS analysis  
+📅 Day 5: Deep understanding of DNS internals  
+➡️ Next: HTTP vs HTTPS — What the attack surface looks like
