@@ -252,3 +252,5 @@ and how to analyse it in Wireshark for forensics investigations.
 ✔ Completed: DNS records, resolution flow, Wireshark DNS analysis  
 📅 Day 5: Deep understanding of DNS internals  
 ➡️ Next: HTTP vs HTTPS — What the attack surface looks like
+
+## 📘 Day 6 – HTTP vs HTTPS — What the Attack Surface Looks Like
