@@ -357,3 +357,62 @@ stolen data to C2 servers
 ✔ Completed: HTTP/HTTPS structure, TLS handshake, SNI analysis  
 📅 Day 6: Deep understanding of web traffic forensics  
 ➡️ Next: Week 1 Review
+
+## 📘 Day 7 – Week 1 Review
+
+Today I answered all 5 Week 1 review questions **from memory** —
+no notes, no looking back. Full self-assessment of Week 1 concepts.
+
+### ✅ Q1 — The 7 OSI Layers
+- Layer 1 → Physical: manages physical devices and network hardware
+- Layer 2 → Data Link: MAC addressing, frame delivery on same network
+- Layer 3 → Network: logical addressing and routing (IP addressing)
+- Layer 4 → Transport: end-to-end delivery, segmentation (TCP, UDP)
+- Layer 5 → Session: manage sessions (create, delete)
+- Layer 6 → Presentation: data formatting (SSL/TLS)
+- Layer 7 → Application: what users see (HTTP, HTTPS, DNS)
+
+### ✅ Q2 — TCP 3-Way Handshake
+- Step 1 – SYN (Client → Server): SYN=1, ISN=100
+  "I want to connect, starting at Seq 100"
+- Step 2 – SYN-ACK (Server → Client): SYN=1, ACK=1,
+  Seq=300, ACK=101 (client seq+1)
+  "Acknowledged, I'll start at Seq 300"
+- Step 3 – ACK (Client → Server): ACK=1,
+  Seq=101, ACK=301 (server seq+1)
+  "Got it. Connection Established"
+- After this, data transfer begins
+
+### ✅ Q3 — DNS A Record
+- A DNS A record maps a domain name → IPv4 address
+- Returns a 32-bit IPv4 address
+- Most fundamental DNS record type used for hostname resolution
+- Example: `nslookup example.com` → returns `93.184.216.34`
+
+### ✅ Q4 — HTTP vs HTTPS in Wireshark
+| Feature | HTTP | HTTPS |
+|---|---|---|
+| Port | 80 | 443 |
+| Wireshark filter | `http` | `tls` or `ssl` |
+| Payload visible | Yes — fully | No — encrypted |
+| What you can see | Full request/response, headers, cookies, POST body, URLs | IP addresses, ports, TLS handshake, certificate info, SNI |
+| Protocol shown | HTTP | TLSv1.2 / TLSv1.3 |
+
+### ✅ Q5 — SNI
+- SNI (Server Name Indication) is a TLS extension
+- Sent in the Client Hello packet
+- Tells the server which hostname the client is trying to reach
+- Sent **before any encryption begins**
+- This means investigators can see the destination domain
+  even in fully encrypted HTTPS traffic — without decrypting it
+
+### 📌 Summary
+- All 5 questions answered correctly from memory
+- Week 1 foundation is solid — OSI, TCP/IP, Wireshark,
+  DNS, HTTP/HTTPS all understood
+
+---
+### 🚀 Progress
+✔ Week 1 Complete — OSI, TCP/IP, Wireshark, DNS, HTTP/HTTPS  
+📅 Day 7: Full Week 1 self-assessment passed  
+➡️ Next: Week 2 — Subnetting, Protocols, First Malware PCAP
