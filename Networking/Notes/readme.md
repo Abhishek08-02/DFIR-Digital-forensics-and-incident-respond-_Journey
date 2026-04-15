@@ -253,4 +253,107 @@ and how to analyse it in Wireshark for forensics investigations.
 📅 Day 5: Deep understanding of DNS internals  
 ➡️ Next: HTTP vs HTTPS — What the attack surface looks like
 
-## 📘 Day 6 – HTTP vs HTTPS — What the Attack Surface Looks Like
+## 📘 Day 6 – HTTP vs HTTPS
+
+Today I studied **HTTP and HTTPS** — how web traffic works, how TLS
+encrypts it, and how forensics investigators can still extract
+information from encrypted traffic using SNI.
+
+### 🔑 Key Points
+- HTTP = HyperText Transfer Protocol, Layer 7 (Application Layer)
+- Port 80 → HTTP (unencrypted)
+- Port 443 → HTTPS (encrypted with TLS)
+
+### 📋 HTTP Request Structure
+- `GET /index.html HTTP/1.1`
+- `Host: www.example.com`
+- `User-Agent: Mozilla/5.0`
+- `Accept: text/html`
+- `Connection: keep-alive`
+
+### 🔧 HTTP Methods
+| Method | Purpose | DFIR Relevance |
+|---|---|---|
+| GET | Request data | Normal browsing |
+| POST | Send data to server | Login, form submit, data exfiltration |
+| PUT | Upload/update | File upload attacks |
+| DELETE | Delete resource | Destructive actions |
+
+> POST requests are critical in DFIR — malware uses POST to send
+stolen data to C2 servers
+
+### 📊 HTTP Status Codes
+| Code | Meaning | DFIR Note |
+|---|---|---|
+| 200 | OK – success | Normal |
+| 301/302 | Redirect | Malware redirects |
+| 403 | Forbidden | Access attempt |
+| 404 | Not Found | Scanning/probing |
+| 500 | Server Error | Exploitation attempt |
+
+### 🔒 HTTP vs HTTPS
+| Feature | HTTP | HTTPS |
+|---|---|---|
+| Port | 80 | 443 |
+| Encryption | None | TLS encrypted |
+| Visibility | Full content visible | Only metadata visible |
+| Wireshark filter | `http` | `tls` |
+| Can see headers? | Yes — everything | No — encrypted |
+| Can see domain? | Yes | Yes — via SNI |
+
+### 🔐 TLS Handshake Sequence
+1. Client Hello → client says "I want to connect securely"
+2. Server Hello → server agrees, sends certificate
+3. Key Exchange → both sides agree on encryption keys
+4. Encrypted data flows
+
+### 🔍 SNI — Key Forensics Technique
+- SNI (Server Name Indication) is a field in TLS Client Hello
+- Reveals destination domain even when traffic is fully encrypted
+- Tree structure: TLS Client Hello → Extension: server_name
+  → Server Name: www.google.com ← visible!
+- Even encrypted malware traffic reveals C2 domain via SNI
+- You don't need to decrypt the traffic
+
+### 🛠️ Lab Output
+**HTTP capture:**
+- Applied `http` filter in Wireshark
+- Found Windows Update GET requests to `103.88.220.57`
+- URL path: `/c/msdownload/update/others/2026/04/...`
+- User-Agent: Windows-Update-Agent/10.0
+- Host: download.windowsupdate.com
+- Response: HTTP/1.1 200 OK
+
+**TLS/HTTPS capture:**
+- Applied `tls` filter
+- Found Packet 415: Client Hello (SNI=httpbin.org)
+- Found Packet 427: Server Hello (SNI=httpbin.org)
+- Destination: 18.214.245.199
+- Version: TLS 1.2 (0x0303)
+
+### 🔑 Key Wireshark Filters
+| Filter | What it shows |
+|---|---|
+| `http` | All HTTP traffic |
+| `http.request.method=="GET"` | Only GET requests |
+| `http.request.method=="POST"` | Only POST requests |
+| `tls` | All encrypted HTTPS traffic |
+| `tls.handshake.type==1` | TLS Client Hello only |
+| `tls.handshake.extensions_server_name` | SNI field visible |
+
+### ⚠️ Security View (DFIR)
+- POST requests = possible data exfiltration
+- SNI reveals C2 domain even in encrypted traffic
+- HTTP credentials visible in plaintext
+- TLS version matters — old TLS 1.0/1.1 = security risk
+
+### 📌 Summary
+- HTTP is fully visible, HTTPS is encrypted but metadata leaks
+- SNI is the most important forensics technique for HTTPS traffic
+- Always check POST requests and SNI fields in any investigation
+
+---
+### 🚀 Progress
+✔ Completed: HTTP/HTTPS structure, TLS handshake, SNI analysis  
+📅 Day 6: Deep understanding of web traffic forensics  
+➡️ Next: Week 1 Review
