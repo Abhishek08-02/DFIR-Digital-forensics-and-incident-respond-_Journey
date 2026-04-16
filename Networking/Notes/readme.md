@@ -416,3 +416,5 @@ no notes, no looking back. Full self-assessment of Week 1 concepts.
 ✔ Week 1 Complete — OSI, TCP/IP, Wireshark, DNS, HTTP/HTTPS  
 📅 Day 7: Full Week 1 self-assessment passed  
 ➡️ Next: Week 2 — Subnetting, Protocols, First Malware PCAP
+
+Day 8 — Subnetting + IP Addressing 🌐
