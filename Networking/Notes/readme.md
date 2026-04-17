@@ -417,4 +417,88 @@ no notes, no looking back. Full self-assessment of Week 1 concepts.
 📅 Day 7: Full Week 1 self-assessment passed  
 ➡️ Next: Week 2 — Subnetting, Protocols, First Malware PCAP
 
-Day 8 — Subnetting + IP Addressing 🌐
+## 📘 Day 8 – Subnetting + IP Addressing
+
+Today I studied **IP addressing and subnetting** — how networks are
+divided, how to calculate host ranges, and why it matters for DFIR.
+
+### 🔑 Key Points
+- IP address = 32-bit number, written in dotted decimal (4 octets)
+- Every IP has two parts: Network portion + Host portion
+- Subnet mask tells you where the line is drawn
+- CIDR = IP address + prefix length (e.g. 192.168.1.0/24)
+
+### 📋 Subnet Mask Table
+| CIDR | Subnet Mask | Network bits | Host bits |
+|---|---|---|---|
+| /8 | 255.0.0.0 | 8 | 24 |
+| /16 | 255.255.0.0 | 16 | 16 |
+| /24 | 255.255.255.0 | 24 | 8 |
+| /32 | 255.255.255.255 | 32 | 0 |
+
+### 🔧 Key Formulas
+1. Total Hosts = 2^(host bits)
+2. Usable Hosts = 2^(host bits) - 2 (network & broadcast)
+3. Network Address = First IP in range (all host bits = 0)
+4. Broadcast Address = Last IP in range (all host bits = 1)
+5. First Usable Host = Network Address + 1
+6. Last Usable Host = Broadcast Address - 1
+
+### 🧮 Lab Problems Solved
+
+**Problem 1 — 192.168.1.0/24**
+- Host bits: 32-24 = 8
+- Total hosts: 2^8 = 256
+- Usable hosts: 256-2 = 254
+- Network address: 192.168.1.0
+- Broadcast: 192.168.1.255
+- First usable: 192.168.1.1
+- Last usable: 192.168.1.254
+- Subnet mask: 255.255.255.0
+
+**Problem 2 — 10.0.0.0/8**
+- Host bits: 32-8 = 24
+- Total hosts: 2^24 = 16,777,216
+- Usable hosts: 16,777,214
+- Network address: 10.0.0.0
+- Broadcast: 10.255.255.255
+- Subnet mask: 255.0.0.0
+
+**Problem 3 — 172.16.5.43/20**
+- Host bits: 32-20 = 12
+- Total hosts: 2^12 = 4096
+- Usable hosts: 4094
+- Network address: 172.16.0.0
+- Broadcast: 172.16.15.255
+- First usable: 172.16.0.1
+- Last usable: 172.16.15.254
+- Subnet mask: 255.255.240.0
+
+### 🌐 Private IP Ranges (RFC 1918)
+| Range | CIDR | Used for |
+|---|---|---|
+| 10.0.0.0 – 10.255.255.255 | /8 | Large networks |
+| 172.16.0.0 – 172.31.255.255 | /12 | Medium networks |
+| 192.168.0.0 – 192.168.255.255 | /16 | Home/small networks |
+
+> Your home WiFi is 192.168.x.x — that's why you see it in Wireshark!
+
+### ⚠️ Why Subnetting Matters for DFIR
+- Every IP in a PCAP belongs to a network — subnetting tells you which
+- 192.168.x.x = private/internal traffic
+- 8.8.8.8, 142.250.x.x = public/external traffic
+- Knowing subnets helps identify **lateral movement** —
+  attacker moving between internal subnets
+- RFC 1918 private ranges should never appear as
+  destination IPs on internet — if they do, something is wrong
+
+### 📌 Summary
+- Subnetting is the foundation of network analysis
+- Every IP investigation starts with identifying internal vs external
+- Subnet math: host bits = 32 - prefix, usable = 2^n - 2
+
+---
+### 🚀 Progress
+✔ Completed: IP addressing, CIDR, subnet math, 3 lab problems  
+📅 Day 8: Subnetting fully understood  
+➡️ Next: UDP + ICMP + ARP — Protocols attackers abuse
