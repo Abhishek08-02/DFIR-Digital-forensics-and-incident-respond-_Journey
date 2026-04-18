@@ -502,3 +502,94 @@ divided, how to calculate host ranges, and why it matters for DFIR.
 ✔ Completed: IP addressing, CIDR, subnet math, 3 lab problems  
 📅 Day 8: Subnetting fully understood  
 ➡️ Next: UDP + ICMP + ARP — Protocols attackers abuse
+
+## 📘 Day 9 – UDP + ICMP + ARP
+
+Today I studied three protocols that attackers frequently abuse —
+UDP, ICMP, and ARP — and analysed all three live in Wireshark.
+
+### 🔑 UDP — User Datagram Protocol
+- Connectionless, unreliable transport layer protocol (Layer 4)
+- No handshake — data sent directly
+- 8-byte header only: Source Port, Destination Port, Length, Checksum
+- No sequence numbers, no ACK, no flow control
+
+### 🔄 TCP vs UDP
+| Feature | TCP | UDP |
+|---|---|---|
+| Connection | 3-way handshake | No handshake |
+| Reliability | Guaranteed delivery | No guarantee |
+| Speed | Slower | Faster |
+| Order | In order | No order |
+| Use case | Web, email, file transfer | Video, DNS, VoIP, gaming |
+
+### ⚠️ UDP in DFIR
+- DNS uses UDP (port 53) — most DNS queries are UDP
+- DHCP uses UDP (ports 67/68)
+- Attackers use UDP for UDP flood attacks (DoS)
+- Malware can use UDP to avoid TCP connection tracking
+- Filter: `udp`
+
+### 🔑 ICMP — Internet Control Message Protocol
+- Layer 3 protocol used for diagnostics and error reporting
+- NOT used to transfer data — only control messages
+
+### 📋 Key ICMP Types
+| Type | Name | Purpose |
+|---|---|---|
+| 0 | Echo Reply | Response to ping |
+| 3 | Destination Unreachable | Host/port not reachable |
+| 8 | Echo Request | The ping itself |
+| 11 | Time Exceeded | TTL expired (traceroute) |
+
+### ⚠️ ICMP in DFIR
+- Ping sweep — attacker pings many IPs to find live hosts
+- ICMP tunneling — data hidden inside ICMP packets for exfiltration
+- TTL exceeded — used by traceroute, shows network path
+- High ICMP volume = possible reconnaissance
+- Filter: `icmp`
+
+### 🔑 ARP — Address Resolution Protocol
+- Layer 2 (Data Link) — translates IP addresses → MAC addresses
+- IP = logical address (routing), MAC = physical address (local delivery)
+- Before sending data, PC must know MAC address of destination
+- ARP Cache stores IP→MAC mappings to avoid repeated requests
+
+### 📋 ARP Request vs Reply
+| Message | Direction | Purpose |
+|---|---|---|
+| ARP Request | Broadcast (to everyone) | Who has this IP? |
+| ARP Reply | Unicast (to requester) | I have that IP, here's my MAC |
+
+### ⚠️ ARP in DFIR
+- ARP Poisoning/Spoofing — attacker sends fake ARP replies
+- Causes traffic meant for router to go to attacker → MITM attack
+- Signs: same MAC claiming multiple IPs, high ARP rate
+- Gratuitous ARP — device announces own IP→MAC unprompted (suspicious!)
+- Filter: `arp`
+
+### 🛠️ Lab Output
+**UDP:** Applied `udp` filter — found UDP packets including DNS
+queries (port 53) and QUIC protocol traffic to 142.250.207.142
+
+**ICMP:** Ran `ping google.com` in terminal
+- Packets Sent=4, Received=4, Lost=0 (0% loss)
+- TTL=118, Average time=6ms
+
+**ARP:** Applied `arp` filter — found:
+- Packet 150: "Who has 192.168.0.142? Tell 192.168.0.1"
+- Packet 151: "192.168.0.142 is at [MAC address]"
+- Opcode: reply (2), Protocol type: IPv4
+
+### 📌 Summary
+- TCP = connection-oriented
+- UDP = connectionless
+- ICMP = diagnostic
+- ARP = local resolution
+
+---
+### 🚀 Progress
+✔ Completed: UDP, ICMP, ARP — theory + Wireshark lab  
+📅 Day 9: Three attacker-abused protocols understood  
+➡️ Next: SMTP + FTP + SSH — Email and File Transfer Protocols
+
