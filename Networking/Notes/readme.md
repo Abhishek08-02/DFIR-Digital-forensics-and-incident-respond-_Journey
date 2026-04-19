@@ -593,3 +593,108 @@ queries (port 53) and QUIC protocol traffic to 142.250.207.142
 📅 Day 9: Three attacker-abused protocols understood  
 ➡️ Next: SMTP + FTP + SSH — Email and File Transfer Protocols
 
+## 📘 Day 10 – SMTP + FTP + SSH
+
+Today I studied three application layer protocols used for email and
+file transfer, and analysed a real email PCAP from Wireshark samples.
+
+### 🔑 SMTP — Simple Mail Transfer Protocol
+- Used to send emails from client to server and between mail servers
+- Port 25 → SMTP (server to server)
+- Port 587 → SMTP (client to server, modern)
+- Port 465 → SMTP over SSL
+
+### 📧 SMTP Conversation
+- Client → `EHLO mail.example.com`
+- Server → `250 Hello`
+- Client → `MAIL FROM: <sender@example.com>`
+- Server → `250 OK`
+- Client → `RCPT TO: <receiver@example.com>`
+- Server → `250 OK`
+- Client → `DATA`
+- Server → `354 Start Input`
+- Client → Subject, From, [email body]
+- Server → `250 OK Message accepted`
+- Client → `QUIT` / Server → `221 Bye`
+
+### ⚠️ SMTP in DFIR
+- Phishing emails travel over SMTP — full email visible in plaintext
+- MAIL FROM can be spoofed — attacker puts any address here
+- RCPT TO shows who the email was actually delivered to
+- Email headers reveal the true origin IP of the sender
+- Filter: `smtp`
+
+### 🔑 FTP — File Transfer Protocol
+- Used to transfer files between client and server
+- Port 21 → FTP Control (commands)
+- Port 20 → FTP Data (actual file transfer)
+- Completely unencrypted — credentials and files visible in plaintext!
+
+### 📋 FTP Commands
+| Command | Purpose |
+|---|---|
+| USER | Send username |
+| PASS | Send password — visible in plaintext! |
+| LIST | List files |
+| RETR | Download a file |
+| STOR | Upload a file |
+| QUIT | Disconnect |
+
+### ⚠️ FTP in DFIR
+- FTP credentials fully visible in Wireshark — filter: `ftp`
+- File contents also visible — filter: `ftp-data`
+- Attackers use FTP to exfiltrate stolen data
+- Look for STOR commands — files being uploaded OUT
+- Look for RETR commands — files being downloaded
+
+### 🔑 SSH — Secure Shell
+- Used for secure remote login and encrypted file transfer
+- Port 22 — everything is encrypted
+- Cannot see commands or data in Wireshark
+- Replaces Telnet (port 23) which was unencrypted
+
+### 🔍 SSH in Wireshark
+- Can see: connection made (IP + port 22), packet sizes, timing
+- Cannot see: actual commands or data
+- Filter: `ssh` or `tcp.port==22`
+
+### ⚠️ SSH in DFIR
+- SSH to unusual IPs = possible backdoor
+- SSH on non-standard ports (not 22) = suspicious
+- Large SSH data transfers = possible exfiltration
+- Attackers use SSH tunneling to bypass firewalls
+- Even though encrypted, connection metadata is valuable
+
+### 📋 Protocol Comparison Table
+| Protocol | Port | Encryption | Purpose | DFIR Risk |
+|---|---|---|---|---|
+| SMTP | 25/587 | None (usually) | Send email | Phishing, spoofing |
+| FTP | 21/20 | None | File transfer | Credentials visible |
+| SSH | 22 | Full | Secure remote | Tunneling, backdoor |
+| Telnet | 23 | None | Remote login | Everything visible |
+| IMAP | 143 | None | Receive email | Email theft |
+| POP3 | 110 | None | Receive email | Email theft |
+
+### 🛠️ Lab Output
+- Downloaded smtp.pcap from wiki.wireshark.org/SampleCaptures
+- Applied `smtp` filter in Wireshark
+- Followed TCP Stream — saw complete email conversation:
+  - EHLO greeting to xc90.websitewelcome.com
+  - AUTH LOGIN — authentication
+  - 235 Authentication succeeded
+  - MAIL FROM / RCPT TO visible
+  - DATA section with From, To, Subject, Message body
+  - Full email content readable in plaintext
+
+### 📌 Summary
+- SMTP + FTP = unencrypted — full content visible in Wireshark
+- SSH = encrypted — only metadata visible
+- FTP passwords are the easiest credentials to steal from a PCAP
+- SMTP MAIL FROM can be spoofed — always check email headers
+
+---
+### 🚀 Progress
+✔ Completed: SMTP, FTP, SSH — theory + real PCAP analysis  
+📅 Day 10: Email and file transfer protocols understood  
+➡️ Next: First Malware PCAP Analysis
+
