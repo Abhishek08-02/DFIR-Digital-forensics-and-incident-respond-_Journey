@@ -700,3 +700,5 @@ file transfer, and analysed a real email PCAP from Wireshark samples.
 
 Day 11 — First Malware PCAP Analysis 🦠
 
+Day 12 — Routing Protocols + Network Layer Deep Dive 🌐
+
