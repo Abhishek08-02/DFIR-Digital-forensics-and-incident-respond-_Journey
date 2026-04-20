@@ -698,3 +698,5 @@ file transfer, and analysed a real email PCAP from Wireshark samples.
 📅 Day 10: Email and file transfer protocols understood  
 ➡️ Next: First Malware PCAP Analysis
 
+Day 11 — First Malware PCAP Analysis 🦠
+
