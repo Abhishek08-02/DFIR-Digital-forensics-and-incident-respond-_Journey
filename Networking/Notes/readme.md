@@ -698,7 +698,101 @@ file transfer, and analysed a real email PCAP from Wireshark samples.
 📅 Day 10: Email and file transfer protocols understood  
 ➡️ Next: First Malware PCAP Analysis
 
-Day 11 — First Malware PCAP Analysis 🦠
+## 📘 Day 11 – First Malware PCAP Analysis
+
+Today I performed my first real malware PCAP analysis using the
+6-step analyst workflow on a real exercise from
+malware-traffic-analysis.net.
+
+### 🔑 What is Malware Traffic Analysis?
+When malware infects a machine, it generates network traffic.
+As a DFIR analyst, your job is to read that traffic and
+reconstruct what happened.
+
+### 🔄 The Analyst Workflow — Always Follow This Order
+1. Protocol Hierarchy → What protocols exist?
+2. Statistics → Conversations → Who is talking to whom?
+3. DNS Filter → What domains did it contact?
+4. HTTP Filter → What URLs did it request?
+5. Export HTTP Objects → Were any files downloaded?
+6. Follow TCP Stream → Read the full conversation
+
+### 📋 DNS Indicators
+| Pattern | What it means |
+|---|---|
+| Random-looking domain | DGA — Domain Generation Algorithm |
+| Same domain queried repeatedly | Beaconing |
+| Long subdomain strings | DNS tunneling |
+| Domains ending in .ru, .xyz, .tk | Often malicious |
+
+### 📋 HTTP Indicators
+| Pattern | What it means |
+|---|---|
+| POST to strange URL | Data exfiltration |
+| GET of .exe or .dll | Malware download |
+| Unusual User-Agent | Malware disguising itself |
+| HTTP to IP (no domain) | Direct C2 connection |
+
+### 📋 TCP Indicators
+| Pattern | What it means |
+|---|---|
+| Connection to port 4444 | Metasploit default |
+| Connection to port 1337 | Common malware port |
+| Many SYN with no response | Port scanning |
+| Regular timed connections | Beaconing |
+
+### 🔧 Key Wireshark Techniques
+1. Protocol Hierarchy: `Statistics → Protocol Hierarchy`
+   Shows every protocol as percentage — unexpected = red flag
+2. Conversations: `Statistics → Conversations → TCP tab`
+   Suspicious IP with lots of traffic = likely C2
+3. Export HTTP Objects: `File → Export Objects → HTTP`
+   Extracts executables, scripts, documents
+4. Follow TCP Stream: `Right click → Follow → TCP Stream`
+   Full conversation in human-readable form
+5. Check User-Agent: filter `http.user_agent`
+   Malware often uses fake/unusual strings
+
+### 🦠 Common Malware Families
+| Malware | Traffic Pattern |
+|---|---|
+| Emotet | HTTP POST to compromised WordPress sites |
+| Trickbot | HTTPS to many IPs, certificate anomalies |
+| Cobalt Strike | Beaconing every 60 seconds, HTTPS |
+| Dridex | HTTP GET of encrypted payloads |
+| Qakbot | HTTPS + DNS with DGA domains |
+
+### 🛠️ Lab Output — Real PCAP Analysis
+Applied dns filter and found suspicious domains:
+
+**Finding 1: `modandcrackapk.com`**
+- Evidence: DNS filter, A record query
+- Resolved to: 193.42.38.139
+- Meaning: Suspicious domain — cracked APK distribution site,
+  likely malware delivery
+
+**Finding 2: `wpad.nemotoads.health`**
+- Evidence: DNS filter, query returned "No such name"
+- Meaning: Malware beacon attempting to reach C2 —
+  domain already taken down (classic sign of active malware)
+
+### 🔑 Key Filters for Malware Analysis
+- `dns` — suspicious domains
+- `http` — suspicious URLs
+- `tcp.port==4444` — Metasploit
+- `http.user_agent` — fake user agents
+
+### 📌 Summary
+- Always follow the 6-step workflow before reading write-ups
+- DNS filter is the first and most important step
+- Suspicious domains + "No such name" = malware beacon
+- Real malware traffic looks different from normal traffic
+
+---
+### 🚀 Progress
+✔ Completed: Malware analysis workflow + real PCAP investigation  
+📅 Day 11: First real malware traffic identified  
+➡️ Next: Routing Protocols + Network Layer Deep Dive
 
 Day 12 — Routing Protocols + Network Layer Deep Dive 🌐
 
