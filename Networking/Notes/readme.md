@@ -899,4 +899,4 @@ live in Wireshark and terminal.
 ### 🚀 Progress
 ✔ Completed: IP structure, TTL, routing, fragmentation, traceroute  
 📅 Day 12: Full network layer understanding  
-➡️ Next: NetworkMiner + Traffic Statistics in Wireshark
+➡️ Next: NetworkMiner + Traffic Statistics in 
