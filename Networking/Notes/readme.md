@@ -794,7 +794,109 @@ Applied dns filter and found suspicious domains:
 📅 Day 11: First real malware traffic identified  
 ➡️ Next: Routing Protocols + Network Layer Deep Dive
 
-Day 12 — Routing Protocols + Network Layer Deep Dive 🌐
+## 📘 Day 12 – Routing Protocols + Network Layer Deep Dive
 
-13
+Today I studied the IP datagram structure, TTL, routing, IP
+fragmentation, and how traceroute works — then verified everything
+live in Wireshark and terminal.
 
+### 🔑 IP Datagram Structure
+| Field | Size | Purpose |
+|---|---|---|
+| Version | 4 bits | IPv4 or IPv6 |
+| Header Length | 4 bits | Size of header |
+| TTL | 8 bits | Hops remaining |
+| Protocol | 8 bits | TCP=6, UDP=17, ICMP=1 |
+| Source IP | 32 bits | Where packet came from |
+| Destination IP | 32 bits | Where packet is going |
+| Checksum | 16 bits | Error detection |
+| Flags | 3 bits | Fragmentation control |
+| Fragment Offset | 13 bits | Position in fragment |
+
+### ⏱️ TTL — Time To Live
+- Most important IP field for DFIR
+- Every router that forwards a packet decreases TTL by 1
+- When TTL reaches 0 → router sends ICMP TTL Exceeded back
+- This is exactly how traceroute works!
+
+### 📋 Common TTL Starting Values
+| OS | Starting TTL |
+|---|---|
+| Windows | 128 |
+| Linux | 64 |
+| Cisco/Network | 255 |
+
+### ⚠️ DFIR Use of TTL
+- TTL tells us how far away the source is
+- Unusually low TTL = packet has traveled many hops
+- TTL=1 packet flood = TTL Attack
+
+### 🔄 How Routing Works
+- Router's job: look at destination IP, find best path, forward
+- Your PC → Home Router (TTL=63) → ISP Router (TTL=62)
+  → Backbone (TTL=61) → Google (TTL=60)
+- Every router has a routing table
+- 0.0.0.0/0 = default route ("if you don't know, send it here")
+
+### 🔀 IP Fragmentation
+- When packet > MTU → fragmented into smaller pieces
+- MTU (Maximum Transmission Unit) = max packet size a link can carry
+- Ethernet MTU = 1500 bytes
+- DFIR: attackers use fragmentation to bypass firewalls
+- Filter: `ip.frag_offset > 0`
+
+### 🌐 IPv4 vs IPv6
+| Feature | IPv4 | IPv6 |
+|---|---|---|
+| Address size | 32 bits | 128 bits |
+| Format | 192.168.1.1 | 2001:db8::1 |
+| Total addresses | ~4 billion | 340 undecillion |
+| Header size | 20 bytes | 40 bytes |
+| Fragmentation | Routers can fragment | Only source fragments |
+
+### 📋 Protocol Numbers
+| Number | Protocol |
+|---|---|
+| 1 | ICMP |
+| 6 | TCP |
+| 17 | UDP |
+| 47 | GRE (tunneling) |
+| 50 | ESP (IPSec) |
+
+### 🔍 How Traceroute Works — TTL Trick
+- Send TTL=1 → first router drops it, sends ICMP back
+- Send TTL=2 → second router drops it, sends ICMP back
+- Send TTL=3 → third router drops it, sends ICMP back
+- Each ICMP TTL-Exceeded reply reveals one router's IP!
+
+### 🛠️ Lab Output
+**Wireshark ip filter:**
+- Found IP packet: Version=4, TTL=128 (Windows!), Protocol=TCP(6)
+- Flags: Don't fragment, Fragment Offset=0
+
+**tracert google.com:**
+- Completed in 8 hops
+- Hop 7: 255ms (high latency — international link)
+- Trace complete
+
+**icmp filter during traceroute:**
+- Echo (ping) requests with TTL=4,5,6,7
+- Time-to-live exceeded messages visible in real time
+
+### 🔑 Key DFIR Filters
+- `ip` → All IP traffic
+- `ip.ttl < 10` → Unusual low TTL
+- `ip.frag_offset > 0` → Fragmented packets
+- `icmp.type == 11` → TTL exceeded messages
+
+### 📌 Summary
+- TTL is one of the most important fields for DFIR
+- Traceroute = clever TTL trick to map network path
+- Fragmentation can be used to bypass firewalls
+- Protocol number in IP header tells you what's inside
+
+---
+### 🚀 Progress
+✔ Completed: IP structure, TTL, routing, fragmentation, traceroute  
+📅 Day 12: Full network layer understanding  
+➡️ Next: NetworkMiner + Traffic Statistics in Wireshark
