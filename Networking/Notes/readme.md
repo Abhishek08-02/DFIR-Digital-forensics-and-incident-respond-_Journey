@@ -901,4 +901,105 @@ live in Wireshark and terminal.
 📅 Day 12: Full network layer understanding  
 ➡️ Next: NetworkMiner + Traffic Statistics in Wireshark
 
-13
+## 📘 Day 13 – NetworkMiner + Traffic Statistics in Wireshark
+
+Today I installed NetworkMiner and used it alongside Wireshark
+Statistics to perform rapid triage on a malware PCAP — the way
+real analysts work.
+
+### 🔑 What is NetworkMiner?
+- Passive network forensics tool
+- Reads a PCAP and automatically extracts everything useful
+- Used for rapid triage — get the big picture fast
+- No filters needed — everything extracted automatically
+
+### 🔄 NetworkMiner vs Wireshark
+| Feature | Wireshark | NetworkMiner |
+|---|---|---|
+| Primary use | Deep packet inspection | Rapid triage and extraction |
+| Learning curve | Steep | Easy |
+| Shows hosts | Manual (Statistics menu) | Automatic (Hosts tab) |
+| Extracts files | Manual (Export Objects) | Automatic (Files tab) |
+| Extracts credentials | Manual (Follow stream) | Automatic (Credentials tab) |
+| Best for | Detailed analysis | First 5 minutes of investigation |
+| Speed | Slow (manual) | Fast (automatic) |
+
+### 📋 NetworkMiner Tabs
+| Tab | What it shows | DFIR Use |
+|---|---|---|
+| Hosts | All IPs, MAC addresses, OS fingerprint | Who was on the network? |
+| Files | Every file transferred | Malware dropped? |
+| Credentials | Usernames and passwords | Were creds stolen? |
+| DNS | All DNS queries and responses | C2 domains? |
+| Images | Images transferred | What was exfiltrated? |
+| Parameters | HTTP POST parameters | Form data, stolen info |
+
+### 📊 Wireshark Statistics Menu
+**1. Protocol Hierarchy** (`Statistics → Protocol Hierarchy`)
+- Shows every protocol as % of total traffic
+- Unexpected protocols (IRC, Telnet) = red flag
+- Very high DNS % = possible DNS tunneling
+- Very high ICMP % = possible tunneling or ping sweep
+
+**2. Conversations** (`Statistics → Conversations → TCP tab`)
+- Shows which hosts talked most and how much data transferred
+- External IP with huge data transfer = exfiltration
+- Many connections to single IP = C2 beaconing
+
+**3. IO Graph** (`Statistics → IO Graph`)
+- Shows traffic volume over time as a graph
+- Regular spikes every X seconds = beaconing
+- Sudden massive spike = data exfiltration burst
+
+**4. DNS Statistics** (`Statistics → DNS`)
+- Shows all DNS query types and response codes
+- High NXDOMAIN count = DGA malware failing to find C2
+- Many queries to same domain = beaconing
+
+### 🔧 The Analyst Triage Workflow — Always This Order
+1. NetworkMiner → fast triage, get host list, check Files + Credentials
+2. Protocol Hierarchy → any unexpected protocols?
+3. Conversations → who is talking most? External IPs?
+4. IO Graph → any beaconing pattern?
+5. DNS filter → suspicious C2 domains?
+6. HTTP filter → suspicious POST requests?
+7. Follow TCP streams on suspicious connections → read actual conversation
+
+### 📡 Ethernet Frames and MAC Addresses
+| Field | Size | Purpose |
+|---|---|---|
+| Destination MAC | 6 bytes | Who receives this frame |
+| Source MAC | 6 bytes | Who sent this frame |
+| Type | 2 bytes | IPv4=0x0800, ARP=0x0806 |
+| Data (payload) | 46-1500 bytes | The actual IP packet |
+| CRC | 4 bytes | Error detection |
+
+**Key fact:** MAC addresses are Layer 2 — they only exist within a
+local network. Every router hop replaces the MAC address but keeps
+the IP address.
+
+### 🛠️ Lab Output
+**NetworkMiner (smtp.pcap):**
+- Hosts tab: 6 hosts discovered
+- OS fingerprinting: Hostname "GP", OS: Windows (TTL=128)
+- Files: 3 files extracted
+- Credentials: 1 credential found
+- DNS: 2 DNS entries
+
+**Wireshark Statistics:**
+- Protocol Hierarchy: SMTP=53.3% (dominant!), TCP=88.3%, DNS=3.3%
+- Conversations: 10.10.1.4 ↔ 74.53.140.153, 53 packets, 24KB
+- DNS Stats: NS, CNAME, A records — 100% no error responses
+- IO Graph: Clear traffic spike at ~2-4 seconds with TCP errors (red)
+
+### 📌 Summary
+- NetworkMiner = automatic extraction (first 5 minutes)
+- Wireshark = deep manual analysis (the details)
+- Use both together — never just one tool
+- Credentials tab in NetworkMiner can reveal stolen passwords instantly
+
+---
+### 🚀 Progress
+✔ Completed: NetworkMiner triage, Wireshark Statistics, triage workflow  
+📅 Day 13: Professional analyst triage workflow mastered  
+➡️ Next: TryHackMe — Wireshark Rooms (Guided Lab)
