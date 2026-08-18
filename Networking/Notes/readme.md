@@ -1003,5 +1003,3 @@ the IP address.
 ✔ Completed: NetworkMiner triage, Wireshark Statistics, triage workflow  
 📅 Day 13: Professional analyst triage workflow mastered  
 ➡️ Next: TryHackMe — Wireshark Rooms (Guided Lab)
-
-1
