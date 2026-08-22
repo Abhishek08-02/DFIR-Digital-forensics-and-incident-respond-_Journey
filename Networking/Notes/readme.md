@@ -1069,4 +1069,4 @@ activity and respond with containment (blocking the attacker)
 📅 Day 14: First real hands-on cybersecurity labs completed  
 ➡️ Next: Windows Event Logs
 
-e
+Day
