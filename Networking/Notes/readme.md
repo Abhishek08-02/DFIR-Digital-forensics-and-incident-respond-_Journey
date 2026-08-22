@@ -1004,4 +1004,67 @@ the IP address.
 📅 Day 13: Professional analyst triage workflow mastered  
 ➡️ Next: TryHackMe — Wireshark Rooms (Guided Lab)
 
-Day14
+## 📘 Day 14 – TryHackMe Rooms
+
+Today I completed 3 TryHackMe rooms — Offensive Security Intro,
+Defensive Security Intro, and Careers in Cyber.
+
+### ✅ Room 1 — Offensive Security Intro
+**Concept:** Think like an attacker to find weaknesses before real
+hackers do.
+
+**Lab — FakeBank attack:**
+- Found bank account number: 8881
+- Used `dirb http://fakebank.thm` to enumerate hidden pages
+- Found hidden admin page: `/bank-transfer`
+- Accessed unprotected admin panel and completed deposit
+- Flag: **BANK-HACKED**
+- Fix: Require login to protect the bank-transfer page
+
+**Key learning:** Hidden pages that aren't linked can still be found
+by attackers using directory brute-forcing tools like `dirb`
+
+### ✅ Room 2 — Defensive Security Intro
+**Concept:** Detect, investigate, and respond to attacks before
+damage occurs.
+
+**Lab — SOC analyst simulation:**
+- Opened monitoring dashboard as apprentice SOC analyst Joe
+- Identified suspicious source IP: `32.122.195.63`
+- Identified attack type: Web Discovery Attack (automated
+  directory enumeration)
+- Attack details: Started 14/07/2025, lasted 16 min 32 sec,
+  31 URLs attempted, 10 blocked
+- Blocked attacker IP via firewall rule
+- Flag: **THM{FAKEBANK-SECURED}**
+
+**Key learning:** SOC analysts monitor dashboards for suspicious
+activity and respond with containment (blocking the attacker)
+
+### ✅ Room 3 — Careers in Cyber
+- Millions of cyber roles are unfilled — people from all
+  backgrounds can fill them
+- Certifications alone can get you a well-paying role faster
+  than most expect
+- No degree required — barrier to entry is lower than assumed
+- 50+ recognised roles: penetration testers, SOC analysts,
+  threat intelligence, incident responders, security engineers
+- Cyber security is one of the fastest growing career fields
+
+### 🏆 Results
+- Total points earned: 120
+- Rooms completed: 3
+- Streak: 1 🔥
+
+### 📌 Summary
+- Offensive security = find weaknesses before attackers do
+- Defensive security = detect, respond, contain attacks
+- dirb = directory brute-forcing tool to find hidden pages
+- SOC analysts rely on monitoring dashboards to detect threats
+- Containment = stopping the attack while it's happening
+
+---
+### 🚀 Progress
+✔ Completed: 3 TryHackMe rooms — offensive, defensive, careers  
+📅 Day 14: First real hands-on cybersecurity labs completed  
+➡️ Next: Windows Event Logs
