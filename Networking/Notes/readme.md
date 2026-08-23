@@ -1070,3 +1070,4 @@ activity and respond with containment (blocking the attacker)
 ➡️ Next: Windows Event Logs
 
 ###
+Day
