@@ -1068,3 +1068,5 @@ activity and respond with containment (blocking the attacker)
 ✔ Completed: 3 TryHackMe rooms — offensive, defensive, careers  
 📅 Day 14: First real hands-on cybersecurity labs completed  
 ➡️ Next: Windows Event Logs
+
+###DAY
