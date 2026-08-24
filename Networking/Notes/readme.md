@@ -1205,3 +1205,4 @@ Get-EventLog -LogName Security -Newest 20
 ✔ Completed: Event IDs, logon types, attack timeline, live lab  
 📅 Day 15: Windows Event Log forensics mastered  
 ➡️ Next: Sysmon + Advanced Logging
+..
