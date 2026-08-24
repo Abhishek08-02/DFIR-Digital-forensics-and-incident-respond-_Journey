@@ -32,6 +32,7 @@ Today I studied the **OSI (Open Systems Interconnection) Model**, a 7-layer fram
 
 ➡️ Next: TCP/IP Model
 
+
 ## 📘 Day 2 – TCP/IP Model
 
 Today I studied the TCP/IP (Transmission Control Protocol / Internet Protocol) Model, the practical networking model used in real-world communication over the internet.
@@ -74,6 +75,7 @@ Essential for networking + cybersecurity
 📅 Day 2: Stronger networking understanding
 
 ➡️ Next: Wireshark(First Real Capture)
+
 
 ## 📘 Day 3 – Wireshark First Capture
 
@@ -119,6 +121,7 @@ WiFi interface and analysed live network traffic using DNS and TCP filters.
 ✔ Completed: First live capture, DNS analysis, TCP observation  
 📅 Day 3: Hands-on with Wireshark  
 ➡️ Next: TCP 3-Way Handshake (deep dive)
+
 
 ## 📘 Day 4 – TCP 3-Way Handshake
 
@@ -177,6 +180,7 @@ a reliable connection before any data is exchanged.
 ✔ Completed: TCP structure, flags, handshake, Wireshark lab  
 📅 Day 4: Hands-on TCP analysis  
 ➡️ Next: DNS Deep Dive
+
 
 ## 📘 Day 5 – DNS Deep Dive
 
@@ -252,6 +256,7 @@ and how to analyse it in Wireshark for forensics investigations.
 ✔ Completed: DNS records, resolution flow, Wireshark DNS analysis  
 📅 Day 5: Deep understanding of DNS internals  
 ➡️ Next: HTTP vs HTTPS — What the attack surface looks like
+
 
 ## 📘 Day 6 – HTTP vs HTTPS
 
@@ -358,6 +363,7 @@ stolen data to C2 servers
 📅 Day 6: Deep understanding of web traffic forensics  
 ➡️ Next: Week 1 Review
 
+
 ## 📘 Day 7 – Week 1 Review
 
 Today I answered all 5 Week 1 review questions **from memory** —
@@ -416,6 +422,7 @@ no notes, no looking back. Full self-assessment of Week 1 concepts.
 ✔ Week 1 Complete — OSI, TCP/IP, Wireshark, DNS, HTTP/HTTPS  
 📅 Day 7: Full Week 1 self-assessment passed  
 ➡️ Next: Week 2 — Subnetting, Protocols, First Malware PCAP
+
 
 ## 📘 Day 8 – Subnetting + IP Addressing
 
@@ -502,6 +509,7 @@ divided, how to calculate host ranges, and why it matters for DFIR.
 ✔ Completed: IP addressing, CIDR, subnet math, 3 lab problems  
 📅 Day 8: Subnetting fully understood  
 ➡️ Next: UDP + ICMP + ARP — Protocols attackers abuse
+
 
 ## 📘 Day 9 – UDP + ICMP + ARP
 
@@ -592,6 +600,7 @@ queries (port 53) and QUIC protocol traffic to 142.250.207.142
 ✔ Completed: UDP, ICMP, ARP — theory + Wireshark lab  
 📅 Day 9: Three attacker-abused protocols understood  
 ➡️ Next: SMTP + FTP + SSH — Email and File Transfer Protocols
+
 
 ## 📘 Day 10 – SMTP + FTP + SSH
 
@@ -698,6 +707,7 @@ file transfer, and analysed a real email PCAP from Wireshark samples.
 📅 Day 10: Email and file transfer protocols understood  
 ➡️ Next: First Malware PCAP Analysis
 
+
 ## 📘 Day 11 – First Malware PCAP Analysis
 
 Today I performed my first real malware PCAP analysis using the
@@ -793,6 +803,7 @@ Applied dns filter and found suspicious domains:
 ✔ Completed: Malware analysis workflow + real PCAP investigation  
 📅 Day 11: First real malware traffic identified  
 ➡️ Next: Routing Protocols + Network Layer Deep Dive
+
 
 ## 📘 Day 12 – Routing Protocols + Network Layer Deep Dive
 
@@ -901,6 +912,7 @@ live in Wireshark and terminal.
 📅 Day 12: Full network layer understanding  
 ➡️ Next: NetworkMiner + Traffic Statistics in Wireshark
 
+
 ## 📘 Day 13 – NetworkMiner + Traffic Statistics in Wireshark
 
 Today I installed NetworkMiner and used it alongside Wireshark
@@ -1004,6 +1016,7 @@ the IP address.
 📅 Day 13: Professional analyst triage workflow mastered  
 ➡️ Next: TryHackMe — Wireshark Rooms (Guided Lab)
 
+
 ## 📘 Day 14 – TryHackMe Rooms
 
 Today I completed 3 TryHackMe rooms — Offensive Security Intro,
@@ -1068,6 +1081,7 @@ activity and respond with containment (blocking the attacker)
 ✔ Completed: 3 TryHackMe rooms — offensive, defensive, careers  
 📅 Day 14: First real hands-on cybersecurity labs completed  
 ➡️ Next: Windows Event Logs
+
 
 ## 📘 Day 15 – Windows Event Logs
 
@@ -1141,3 +1155,53 @@ they tell you who logged in, what ran, what failed, and when.
 - Workstation: ATTACKER-PC
 
 ### ⚔️ Attack Timeline Using Event Logs
+- 4625 × 50 → Brute force (50 failed logons)
+- 4624 Type 3 → Network logon succeeded
+- 4728 → Added to security group
+- 4732 → Added to local admin group
+- 4688 → Malicious process launched
+- 4698 → Scheduled task created (persistence)
+- 1102 → Logs cleared (covering tracks)
+
+### 💻 PowerShell Event Logging
+- Event 4103 → Pipeline execution
+- Event 4104 → Script block logging — full command visible
+- Event 4104 is gold — shows exactly what PowerShell command
+  was run, even obfuscated ones
+
+### 🛠️ Lab Output
+**Event Viewer:**
+- Found Event 4624 (Successful logon)
+  - Account: DESKTOP-15109N0$ / SYSTEM
+  - Logon Type: 5 (Service)
+  - Date: 24-08-2026 09:18 PM
+- Found Event 4625 (Failed logon)
+  - Logon Type: 2 (Interactive)
+  - Failure reason: Error occurred during logon
+  - Date: 24-08-2026 09:18 PM
+
+**PowerShell commands run:**
+```powershell
+Get-WinEvent -FilterHashtable @{LogName='Security'; Id=4624} -MaxEvents 5
+# → 5 successful logon events returned (09:18 PM - 09:27 PM)
+
+Get-WinEvent -FilterHashtable @{LogName='Security'; Id=4625} -MaxEvents 5
+# → 5 failed logon events returned (oldest: 20-08-2026)
+
+Get-EventLog -LogName Security -Newest 20
+# → 20 events returned, mostly InstanceID 5379
+#   (Credential Manager credentials read)
+```
+
+### 📌 Summary
+- Windows Event Logs = black box recorder of the system
+- 4624 + Logon Type 10 = RDP login — always investigate
+- 1102 = attacker clearing their tracks
+- PowerShell 4104 = most powerful forensic logging
+- Use eventvwr.msc for GUI, Get-WinEvent for automation
+
+---
+### 🚀 Progress
+✔ Completed: Event IDs, logon types, attack timeline, live lab  
+📅 Day 15: Windows Event Log forensics mastered  
+➡️ Next: Sysmon + Advanced Logging
