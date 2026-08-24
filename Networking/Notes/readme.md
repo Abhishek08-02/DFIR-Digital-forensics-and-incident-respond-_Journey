@@ -1069,5 +1069,75 @@ activity and respond with containment (blocking the attacker)
 📅 Day 14: First real hands-on cybersecurity labs completed  
 ➡️ Next: Windows Event Logs
 
-###
-Day
+## 📘 Day 15 – Windows Event Logs
+
+Today I studied Windows Event Logs — the black box recorder of
+every Windows system — and queried them live using both Event
+Viewer and PowerShell.
+
+### 🔑 What Are Windows Event Logs?
+Windows records everything that happens on a system in Event Logs.
+For a DFIR analyst these logs are like a black box recorder —
+they tell you who logged in, what ran, what failed, and when.
+
+### 📋 Event Log Locations
+| Log | Path | Contains |
+|---|---|---|
+| Security | Windows Logs\Security | Logons, privilege use, object access |
+| System | Windows Logs\System | OS events, service start/stop |
+| Application | Windows Logs\Application | App crashes, errors |
+| PowerShell | Apps & Services\Microsoft\Windows\PowerShell | PS commands run |
+| Sysmon | Apps & Services\Microsoft\Windows\Sysmon | Deep system monitoring |
+
+### 🔐 Authentication Events
+| Event ID | Meaning | DFIR Relevance |
+|---|---|---|
+| 4624 | Successful logon | Who logged in and when |
+| 4625 | Failed logon | Brute force attempts |
+| 4634 | Logoff | Session ended |
+| 4648 | Logon with explicit credentials | Lateral movement |
+| 4672 | Special privileges assigned | Admin logon |
+| 4768 | Kerberos ticket requested | Domain auth |
+| 4771 | Kerberos pre-auth failed | Failed domain logon |
+
+### 👤 Account Management Events
+| Event ID | Meaning | DFIR Relevance |
+|---|---|---|
+| 4720 | User account created | Attacker creating backdoor account |
+| 4722 | User account enabled | Dormant account activated |
+| 4724 | Password reset attempt | Privilege escalation |
+| 4728 | User added to security group | Privilege escalation |
+| 4732 | User added to local admin group | Critical — attacker gaining admin |
+
+### 🖥️ Process and Execution Events
+| Event ID | Meaning | DFIR Relevance |
+|---|---|---|
+| 4688 | New process created | What ran on the machine |
+| 4689 | Process exited | Process lifetime |
+| 1102 | Audit log cleared | Attacker covering tracks! |
+| 4698 | Scheduled task created | Persistence mechanism |
+| 7045 | New service installed | Malware installing itself |
+
+### 🔢 Logon Types — Inside Event 4624
+| Type | Name | Meaning |
+|---|---|---|
+| 2 | Interactive | Local keyboard login |
+| 3 | Network | File share, net use |
+| 4 | Batch | Scheduled task |
+| 5 | Service | Windows service |
+| 7 | Unlock | Screen unlock |
+| 10 | RemoteInteractive | RDP login ⚠️ |
+| 11 | CachedInteractive | Offline cached login |
+
+> Logon Type 10 = RDP — always investigate in an incident!
+
+### 📖 Reading a 4624 Event
+- Event ID: 4624
+- Time: 2024-04-14 03:42:17
+- Account Name: Abhishek
+- Account Domain: DESKTOP-XYZ
+- Logon Type: 10 ← RDP — suspicious at 3am!
+- Source IP: 185.220.x.x ← External IP = very suspicious!
+- Workstation: ATTACKER-PC
+
+### ⚔️ Attack Timeline Using Event Logs
