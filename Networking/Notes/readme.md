@@ -1206,4 +1206,4 @@ Get-EventLog -LogName Security -Newest 20
 📅 Day 15: Windows Event Log forensics mastered  
 ➡️ Next: Sysmon + Advanced Logging
 
-Day 16ff
+Day 16ffkjhgkj
