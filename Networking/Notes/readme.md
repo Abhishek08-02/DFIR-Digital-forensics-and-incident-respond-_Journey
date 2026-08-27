@@ -1204,6 +1204,107 @@ Get-EventLog -LogName Security -Newest 20
 ### 🚀 Progress
 ✔ Completed: Event IDs, logon types, attack timeline, live lab  
 📅 Day 15: Windows Event Log forensics mastered  
-➡️ Next: Sysmon + Advanced Logging
+➡️ Next: C2 Traffic Patterns
 
-Day 16ffkjhgkjjhgy
+
+## 📘 Day 16 – C2 Traffic Patterns
+
+Today I studied C2 (Command & Control) traffic — how malware
+communicates with its attacker after infecting a machine — and
+learned the 5 core traffic patterns analysts look for, plus how
+to detect each one in Wireshark.
+
+### 🔑 What is C2 Traffic?
+- C2 = how malware communicates with the attacker after infecting a machine
+- Attacker sends commands TO the malware, malware sends stolen data BACK
+- Flow: Victim's PC (Infected Machine) → C2 Server (attacker-controlled)
+- C2 server is usually a VPS, compromised website, or DGA domain
+
+### 🚩 The 5 C2 Traffic Patterns
+
+**1) Beaconing**
+- Malware checks in with its C2 server at regular intervals — like a heartbeat
+- Example: 10:00:00 → 10:00:60 → 10:02:00 → 10:03:00 (exactly 60s apart)
+- How to spot it: IO Graph shows regular spikes; Conversations tab shows many connections to one IP at equal intervals
+- DFIR filter: `ip.dst == [suspicious IP]`
+
+**2) DGA — Domain Generation Algorithm**
+- Instead of hardcoding a C2 domain (which can be blocked), malware generates random domains daily from an algorithm only attacker & malware know
+- Example: Day 1: xkq7z3mpa.ru / Day 2: mzp9qw2nx.com / Day 3: hbt5k18yz.net
+- How to spot it: very long random-looking domain names; high NXDOMAIN count (malware trying many domains until it finds the live one); unusual TLDs (.ru, .tk, .xyz)
+- DFIR filter: `dns and dns.flags.rcode==3` (NXDOMAIN responses)
+
+**3) HTTP POST Exfiltration**
+- Malware sends stolen data (keystrokes, files, credentials) to C2 using HTTP POST requests — same as submitting a web form, but the "form data" is your stolen information
+- Example: `POST /gate.php HTTP/1.1`, Host: 185.220.x.x, User-Agent: Mozilla/4.0 (fake browser), Content: [encrypted stolen data]
+- How to spot it: POST to unusual URIs (/gate.php, /panel, /b374k.php); POST to a bare IP address (no domain); unusual/fake User-Agent strings; large Content-Length in POST
+- DFIR filter: `http.request.method=="POST"`
+
+**4) HTTPS C2 (Encrypted Beaconing)**
+- Modern malware uses HTTPS to hide C2 traffic in encrypted traffic — you can't see the content, but you can still see: the domain via SNI in the TLS Client Hello, regular connection timing (beaconing), certificate anomalies (self-signed, wrong domain)
+- DFIR filter: `tls.handshake.type==1` (Client Hello — shows SNI)
+
+**5) DNS Tunneling**
+- Attacker hides data inside DNS queries — using subdomains to smuggle data out
+- Normal DNS: query → google.com
+- Tunneling: query → 546865774681696566.c2domain.com (hex-encoded stolen data)
+- How to spot it: extremely long subdomain names (>50 chars); high volume of DNS queries to one domain; DNS query sizes much larger than normal (normal ≈ 30 bytes, tunneling ≈ 100+ bytes)
+- DFIR filter: `dns.qry.name.len>50`
+
+### 📋 C2 Traffic vs Normal Traffic
+
+| Feature | Normal Traffic | C2 Traffic |
+|---|---|---|
+| DNS Queries | Known domains | Random/DGA domains |
+| Timing | Irregular | Regular (beaconing) |
+| HTTP POST | Form submissions | Stolen data |
+| User-Agent | Real browser | Fake/unusual |
+| Destination | CDNs, known servers | Unknown IPs |
+| Volume | Varies | Consistent (beacon) |
+| Certificates | Trusted CAs | Self-signed |
+
+### 🦠 Real Malware C2 Patterns
+
+| Malware | C2 Method | What to look for |
+|---|---|---|
+| Emotet | HTTP POST | POST to WordPress sites, fake User-Agent |
+| Cobalt Strike | HTTPS beacon | Regular HTTPS every 60s, malleable C2 |
+| Trickbot | HTTPS | Many IPs, certificate anomalies |
+| Qakbot | HTTPS + DNS | DGA domains, HTTPS beaconing |
+| IcedID | HTTPS | GET requests with encoded data in URL |
+| AsyncRAT | TCP direct | Connection to port 4444 or 6606 |
+
+### 🔑 Key DFIR Filters for C2 Hunting
+- `dns.flags.rcode==3` → NXDOMAIN — DGA failure
+- `http.request.method=="POST"` → Data exfiltration
+- `http.user_agent` → Fake user agents
+- `tls.handshake.type==1` → C2 domain via SNI
+- `tcp.port==4444` → Metasploit C2
+- `dns.qry.name.len>50` → DNS tunneling
+- `ip.dst==x.x.x.x` → Traffic to specific C2 IP
+- Frame contains "gate.php" → common C2 URL
+
+### 🛠️ Lab Output
+Followed the malware-traffic-analysis.net workflow:
+- **Step 1 — DGA Domains:** Applied `dns` filter on a real PCAP, observed
+  wpad.mshome.net, config.edge.skype.com, assets.adobedtm.com chains and
+  an ICMP "Destination unreachable (Port unreachable)" response
+- **Step 2 — Data Exfiltration:** Applied `http.request.method=="POST"`,
+  found POST requests to `/api/set_agent?id=...&token=...` with
+  `application/x-www-form-urlencoded` content
+- **Step 3 — C2 over HTTP:** Applied `http` filter, followed the sequence
+  of GET/POST requests including a suspicious `/favicon.ico` GET and a
+  404 Not Found response mixed in with legitimate-looking traffic
+
+### 📌 Summary
+- 5 C2 patterns: Beaconing, DGA, HTTP POST exfiltration, HTTPS encrypted
+  beaconing, DNS tunneling
+- Each pattern has a distinct signature and a specific Wireshark filter
+- C2-vs-normal comparison table + real malware family cheat sheet built
+  for future investigations
+
+---
+### 🚀 Progress
+✔ Completed: 5 C2 traffic patterns, detection filters, malware family reference, hands-on PCAP lab  
+📅 Day 16: C2 traffic hunting skills built  
+➡️ Next: Zeek — Network Logs That Investigators Actually Use
