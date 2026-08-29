@@ -1309,4 +1309,4 @@ Followed the malware-traffic-analysis.net workflow:
 📅 Day 16: C2 traffic hunting skills built  
 ➡️ Next: Zeek — Network Logs That Investigators Actually Use
 
-Day 17 will be comming soon
+Took gap for some personal reasons
