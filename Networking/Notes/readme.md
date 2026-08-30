@@ -1308,5 +1308,3 @@ Followed the malware-traffic-analysis.net workflow:
 ✔ Completed: 5 C2 traffic patterns, detection filters, malware family reference, hands-on PCAP lab  
 📅 Day 16: C2 traffic hunting skills built  
 ➡️ Next: Zeek — Network Logs That Investigators Actually Use
-
-Took gap for some personal reasons
