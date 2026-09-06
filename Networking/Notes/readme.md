@@ -1309,4 +1309,142 @@ Followed the malware-traffic-analysis.net workflow:
 📅 Day 16: C2 traffic hunting skills built  
 ➡️ Next: Zeek — Network Logs That Investigators Actually Use Soon
 
-Day 17/1
+## 📘 Day 17 – Zeek: Network Logs That Investigators Actually Use
+
+Today I studied Zeek (formerly Bro) — a passive network analysis
+framework that converts raw packet captures into structured,
+searchable log files.
+
+### 🔑 What is Zeek?
+- Zeek is a passive network analysis framework
+- Unlike Wireshark (raw packets), Zeek automatically generates structured log files from network traffic
+- Makes it much faster to analyse large captures
+- Flow: PCAP file / Live traffic → Zeek → structured log files (.log)
+- Key logs: conn.log, dns.log, http.log, ssl.log, files.log
+
+### 🔄 Zeek vs Wireshark vs NetworkMiner
+
+| Feature | Wireshark | NetworkMiner | Zeek |
+|---|---|---|---|
+| Output | Raw packets | Auto-extracted files | Structured logs |
+| Speed | Slow (manual) | Fast (auto) | Very fast (scripted) |
+| Best for | Deep inspection | Rapid triage | Large-scale analysis |
+| Scripting | No | No | Yes (Zeek scripts) |
+| Used by | Everyone | SOC analysts | Enterprise SOC |
+| Log form | .pcap | GUI tabs | .log |
+
+### 📋 Zeek Log Files — The Most Important Ones
+
+**1) conn.log — Every Connection**
+The most important Zeek log. Records every network connection.
+| Field | Meaning |
+|---|---|
+| ts | Timestamp |
+| id.orig_h | Source IP |
+| id.orig_p | Source Port |
+| id.resp_h | Destination IP |
+| id.resp_p | Destination Port |
+| proto | Protocol (tcp/udp) |
+| duration | How long connection lasted |
+| orig_bytes | Bytes sent by source |
+| resp_bytes | Bytes sent by destination |
+| conn_state | Connection state |
+
+- DFIR use: long duration connections = possible C2 beaconing; large resp_bytes = possible data download; large orig_bytes = possible exfiltration
+
+**2) dns.log — Every DNS Query**
+Records every DNS query and response.
+| Field | Meaning |
+|---|---|
+| ts | Timestamp |
+| id.orig_h | Who asked |
+| query | Domain queried |
+| qtype_name | Query type (A, AAAA, MX) |
+| answers | IP address returned |
+| rcode_name | NOERROR or NXDOMAIN |
+
+- DFIR use: `rcode_name==NXDOMAIN` = DGA malware failing; repeated queries to same domain = beaconing
+
+**3) http.log — Every HTTP Request**
+Records every HTTP request and response.
+| Field | Meaning |
+|---|---|
+| ts | Timestamp |
+| id.orig_h | Client IP |
+| host | Website visited |
+| uri | Path requested |
+| method | GET / POST |
+| user_agent | Browser/client used |
+| status_code | 200, 404, etc |
+| resp_body_len | Response size |
+
+- DFIR use: unusual user_agent = malware; POST method = possible exfiltration; /gate.php, /panel/ in URI = C2
+
+**4) ssl.log — Every TLS Connection**
+Records TLS/SSL handshake information.
+| Field | Meaning |
+|---|---|
+| server_name | SNI — destination domain |
+| issuer | Certificate issuer |
+| validation_status | Certificate valid? |
+| version | TLS version |
+
+- DFIR use: server_name reveals C2 domain even in encrypted traffic; self-signed certificates = suspicious
+
+**5) files.log — Every File Transferred**
+Records every file seen in network traffic.
+| Field | Meaning |
+|---|---|
+| filename | File name |
+| mime_type | File type |
+| md5 | File hash |
+| sha256 | File hash |
+| source | Protocol (HTTP, SMTP) |
+
+- DFIR use: MD5/SHA256 hash can be checked on VirusTotal to identify malware
+
+### 🔧 zeek-cut — The Key Command
+`zeek-cut` is used to select specific columns from Zeek logs:
+
+```bash
+# Get source and destination IPs from conn.log
+cat conn.log | zeek-cut id.orig_h id.resp_h
+
+# Get DNS queries
+cat dns.log | zeek-cut query rcode_name
+
+# Get HTTP URIs and user agents
+cat http.log | zeek-cut host uri user-agent method
+
+# Find long connections (possible beaconing)
+cat conn.log | zeek-cut id.orig_h id.resp_h duration | sort -k3 -rn
+
+# Find NXDOMAIN responses (DGA)
+cat dns.log | zeek-cut query rcode_name | grep NXDOMAIN
+
+# Find POST requests
+cat http.log | zeek-cut method host uri | grep POST
+```
+
+### 📋 Connection States in conn.log
+
+| State | Meaning | DFIR Note |
+|---|---|---|
+| SF | Normal established + closed | Normal |
+| S0 | SYN sent, no response | Port scan |
+| S1 | Established, not closed | Possible C2 |
+| REJ | Connection rejected | Port scan/firewall |
+| RSTO | Reset by originator | Suspicious |
+| OTH | No SYN seen | Partial capture |
+
+### 📌 Summary
+- Zeek converts raw packets into structured, greppable logs — ideal for large-scale analysis
+- conn.log, dns.log, http.log, ssl.log, files.log are the core logs to know
+- zeek-cut + grep/sort turns log hunting into simple one-liners
+- Connection states (S0, REJ, RSTO) reveal scanning and suspicious behavior at a glance
+
+---
+### 🚀 Progress
+✔ Completed: Zeek fundamentals, 5 core log types, zeek-cut command, connection states  
+📅 Day 17: Zeek log analysis skills built  
+➡️ Next: Suricata — Automated Threat Detection
