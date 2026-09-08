@@ -1448,3 +1448,4 @@ cat http.log | zeek-cut method host uri | grep POST
 ✔ Completed: Zeek fundamentals, 5 core log types, zeek-cut command, connection states  
 📅 Day 17: Zeek log analysis skills built  
 ➡️ Next: Suricata — Automated Threat Detection
+18
