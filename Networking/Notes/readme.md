@@ -1449,4 +1449,4 @@ cat http.log | zeek-cut method host uri | grep POST
 📅 Day 17: Zeek log analysis skills built  
 ➡️ Next: Suricata — Automated Threat Detection
 
-Day 18
+Da
