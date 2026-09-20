@@ -1605,4 +1605,4 @@ In a real investigation you would:
 ✔ Completed: Suricata fundamentals, rule structure, alert formats, writing custom rules  
 📅 Day 18: Automated threat detection skills built  
 ➡️ Next: TBD
-1
+1w
