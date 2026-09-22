@@ -1604,5 +1604,90 @@ In a real investigation you would:
 ### 🚀 Progress
 ✔ Completed: Suricata fundamentals, rule structure, alert formats, writing custom rules  
 📅 Day 18: Automated threat detection skills built  
+➡️ Next: Second Malware Investigation (Solo)
+
+## 📘 Day 19 – Second Malware Investigation (Solo)
+
+Today I ran a full solo malware traffic investigation on my own — applying
+every tool and technique from Days 11–18 without following a step-by-step
+guide, and built a reusable investigation checklist + IOC tracking format
+for future cases.
+
+### 🔑 The Solo Investigation Mindset
+- Working on practical things — this is what a real SOC analyst does on their work phase
+- The goal shifts from "learning a tool" to "running an investigation end to end"
+
+### 📋 The Complete Investigation Checklist
+Use this every single time analysing a PCAP:
+- Protocol Hierarchy → unexpected protocols?
+- Conversations → most active IPs?
+- IO Graph → beaconing pattern?
+- DNS filter → DGA? NXDOMAIN? Suspicious TLDs?
+- HTTP filter → POST? Unusual UA? /gate.php?
+- Export HTTP Objects → malware dropped?
+- Follow TCP Stream → read actual conversation
+- TLS filter → SNI reveals C2 domain
+- NetworkMiner Hosts → OS fingerprinting
+- NetworkMiner Files → files extracted
+- NetworkMiner Creds → stolen credentials?
+- Zeek dns.log → NXDOMAIN count
+- Zeek conn.log → longest connections
+- Zeek http.log → POST requests
+
+### 📋 Indicators of Compromise (IOC) Table
+When something suspicious is found, record it like this:
+
+| Type | Value | Tool Found | Confidence |
+|---|---|---|---|
+| IP | 185.220.x.x | Wireshark Conversations | High |
+| Domain | xkq7z3mpa.ru | DNS Filter | High |
+| Port | 4444 | TCP Filters | Medium |
+| URL | /gate.php | HTTP Filter | High |
+| Hash | d41d8c... | NetworkMiner Files | High |
+| UA | Mozilla/4.0 | HTTP Filter | Medium |
+
+### 🎯 What Makes a Good Investigation
+- **Speed matters:** real analysts triage fast — Protocol Hierarchy and Conversations first, always. These give you the big picture in 60 seconds
+- **Evidence chain:** every finding needs a filter, packet number, or log line backing it up. "I think this IP is suspicious" is not evidence. "Conversations tab shows 185.220.x.x sent 2.3MB in 47 connections over 4 minutes" is evidence
+- **Content matters:** not every POST is malicious, not every unknown domain is DGA. Ask:
+  1. Is this normal software phoning home?
+  2. Is this a CDN or cloud service?
+  3. Does the timing pattern make sense for normal traffic?
+- **The write-up comparison:** after reading the write-up, the most important question is not "did I get it right?" but "why did I miss what I missed?" — that gap is exactly what to focus on next
+
+### ⚠️ Common Mistakes Analysts Make
+1. **Jumping to filters too fast** → Always do Protocol Hierarchy first
+2. **Ignoring DNS** → DNS reveals everything — always check it
+3. **Not checking User-Agent** → Malware always has unusual UAs
+4. **Trusting HTTPS = safe** → Check SNI — domain is still visible
+5. **Missing beaconing** → Use IO Graph — it shows timing visually
+6. **Not using NetworkMiner** → It finds credentials you'll miss in Wireshark
+
+### 🛠️ Lab Output — Full Solo Investigation
+PCAP: `2024-08-15-traffic-analysis-exercise.pcap` (malware-traffic-analysis.net)
+
+**Step 1 — Protocol Hierarchy (every protocol + %, unexpected ones?):**
+- QUIC, TLS, HTTP, DCE/RPC, LDAP, SMB2, Kerberos, DNS
+- Breakdown: TCP 84.5% → UDP 15.0% → QUIC 11.8% → TLS 11.0% → HTTP 3.6% → DNS 2.3%
+- Also observed: DHCP, ARP, IGMPv3, mDNS, LLMNR, CLDAP traffic mixed in
+
+**Step 2 — Conversations (sorted by bytes, top talkers):**
+- Identified top IPs by traffic volume from the Conversations tab (10.8.15.4, 10.8.15.133, and broadcast/multicast addresses dominating early frames)
+
+**Step 3 — DNS filter (DGA / beaconing / NXDOMAIN / unusual TLDs):**
+- Applied `dns` filter — observed repeated SRV/CNAME/A record queries to internal AD infrastructure: `_ldap._tcp.dc._msdcs.lafontainebleu.org`, `win-jegjix7q9rs.lafontainebleu.org`
+- Also saw legitimate-looking chains: `g.microsoft.com`, `www.msftconnecttest.com`, `edgeservices.bing.com`, akamaiedge/akadns entries
+- No DGA-style random domains or NXDOMAIN failures found in this segment — traffic here reads as legitimate Windows domain-join/AD activity (DHCP → ARP → DNS SRV lookups → LDAP/Kerberos)
+
+### 📌 Summary
+- Built a permanent, repeatable investigation checklist covering Wireshark, NetworkMiner, and Zeek together
+- Built a standard IOC table format (Type / Value / Tool Found / Confidence) for documenting findings
+- Learned that evidence must always be tied to a specific filter, packet number, or log line — not gut feeling
+- Identified 6 common analyst mistakes to actively guard against in future investigations
+- This PCAP's traffic pattern (DHCP, ARP, AD/LDAP/Kerberos, DNS SRV records) reads as normal enterprise network activity rather than malware — a useful contrast case to the malicious PCAP from Day 11
+
+---
+### 🚀 Progress
+✔ Completed: Full solo investigation workflow, IOC table format, common mistakes checklist, real PCAP triage  
+📅 Day 19: Independent investigation skills built  
 ➡️ Next: TBD
-1www
