@@ -1691,4 +1691,3 @@ PCAP: `2024-08-15-traffic-analysis-exercise.pcap` (malware-traffic-analysis.net)
 ✔ Completed: Full solo investigation workflow, IOC table format, common mistakes checklist, real PCAP triage  
 📅 Day 19: Independent investigation skills built  
 ➡️ Next: TBD
-.
