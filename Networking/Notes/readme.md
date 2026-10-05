@@ -1690,6 +1690,139 @@ PCAP: `2024-08-15-traffic-analysis-exercise.pcap` (malware-traffic-analysis.net)
 ### 🚀 Progress
 ✔ Completed: Full solo investigation workflow, IOC table format, common mistakes checklist, real PCAP triage  
 📅 Day 19: Independent investigation skills built  
-➡️ Next: TBD
+➡️ Next: ARP Poisoning + DHCP Attacks
 
-Day 20
+
+## 📘 Day 20 – ARP Poisoning + DHCP Attacks
+
+Today I studied two Layer 2/3 man-in-the-middle attack techniques —
+ARP Poisoning and Rogue DHCP — how they work, how they differ, and
+how to spot both live in Wireshark.
+
+### 🔑 ARP Review
+- ARP (Address Resolution Protocol) translates IP addresses → MAC address within a local network
+- Your PC broadcasts "Who has 192.168.1.1?" and the router replies "That's me — AA:BB:CC:DD:EE:FF"
+
+### ☠️ What is ARP Poisoning?
+- ARP has no authentication — any device can send an ARP reply claiming any IP
+- Attackers exploit this to redirect traffic through their machine
+
+**Normal:**
+`PC-A → Router → Internet`
+
+**After ARP Poisoning:**
+`PC-A → ATTACKER → Router → Internet`
+Attacker reads all traffic (MITM)
+
+### ⚙️ How It Works
+1. Attacker sends fake ARP reply to PC-A: "192.168.1.1 (router) is at My MAC"
+2. PC-A updates its ARP cache — now sends all traffic to attacker
+3. Attacker forwards traffic to real router (so victim doesn't notice)
+4. Attacker reads everything in between → Man in the Middle (MITM)
+
+### 🚩 ARP Poisoning Signs in Wireshark
+1. Same MAC → claiming to be multiple IPs
+2. Same IP → multiple MAC (ARP cache being poisoned)
+3. High ARP rate → ARP flood/storm
+4. Gratuitous ARP → unsolicited ARP reply — suspicious
+5. ARP reply with no request → nobody asked — why is it replying?
+
+### 🔑 Key Wireshark Filters
+- `arp.duplicate-address-detected` — Wireshark automatically flags ARP poisoning!
+- `arp.opcode==2` — ARP replies only
+
+### 📡 What is Gratuitous ARP?
+- A Gratuitous ARP is when a device sends an ARP reply without anyone asking. It announces: "I am 192.168.1.1 and my MAC is xx:xx:xx:xx:xx:xx"
+- **Legitimate use:** device coming online, updating everyone's cache
+- **Malicious use:** attacker poisoning everyone's ARP cache at once
+- In Wireshark: Src IP == Dst IP in ARP packet = Gratuitous ARP
+
+### 🔑 What is DHCP?
+- DHCP (Dynamic Host Configuration Protocol) automatically assigns IP addresses to devices joining a network
+
+### 🔄 DHCP DORA Process
+
+| Message | Direction | Purpose |
+|---|---|---|
+| Discover | Client → Broadcast | Find DHCP server |
+| Offer | Server → Client | Offer IP address |
+| Request | Client → Broadcast | Accept the offer |
+| ACK | Server → Client | Confirm assignment |
+
+- Client → DHCP Discover (broadcast: "I need an IP!")
+- Server → DHCP Offer (unicast: "Here, take 192.168.1.50")
+- Client → DHCP Request (broadcast: "Yes, I'll take that IP")
+- Server → DHCP ACK (unicast: "Confirmed, it's yours.")
+
+### ⚠️ DHCP Attacks
+
+**1) DHCP Starvation:**
+- Attacker sends thousands of fake DHCP Discover packets with spoofed MAC addresses → exhausts all available IP addresses → legitimate clients can't get IPs (DoS)
+
+**Signs in Wireshark:**
+1. Huge number of DHCP Discover packets
+2. All from different MAC addresses
+3. DHCP pool exhausted — server stops responding
+
+Filter: `bootp.option.type==53 and bootp.option.dhcp==1` (DHCP Discover packets only)
+
+**2) Rogue DHCP Server:**
+- Attacker's IP as the default gateway — call traffic goes through attacker
+- Attacker sets up their own DHCP server → legitimate clients receive it
+- Attacker's IP as the DNS server (attacker controls DNS = controls everything)
+
+**Signs in Wireshark:**
+1. Two different servers responding to DHCP Discover
+2. DHCP Offer from unexpected IP
+3. Clients getting gateway = attacker's IP
+
+Filter: `bootp.option.type==53 and bootp.option.dhcp==2` (DHCP Offer packets only)
+
+### 📋 ARP Poisoning vs Rogue DHCP
+
+| Attack | Layer | Method | Goal |
+|---|---|---|---|
+| ARP Poisoning | Layer 2 | Fake ARP replies | MITM existing connections |
+| Rogue DHCP | Layer 3 | Fake DHCP server | MITM new connections |
+| DHCP Starvation | Layer 3 | Flood DHCP Discover | DoS — no IPs available |
+
+> Both ARP Poisoning and Rogue DHCP achieve the same result — the attacker sits between victim and router — but via different methods.
+
+### 🔍 Detecting These Attacks in Wireshark
+
+**1) ARP Poisoning:**
+- `arp` → all ARP traffic
+- `arp.opcode==2` → replies only
+- `arp.duplicate-address-detected` → auto-flagged!
+
+**2) DHCP Attacks:**
+- `bootp` → all DHCP traffic
+- `bootp.option.dhcp==1` → DHCP Discover
+- `bootp.option.dhcp==2` → DHCP Offer
+- `bootp.option.dhcp==5` → DHCP ACK
+
+### ⚠️ DFIR Significance
+- ARP poisoning is the most common LAN attack — used for credential theft, session hijacking
+- Rogue DHCP enables full network interception of all new connections
+- Both are undetectable to victims without network monitoring
+- Dynamic ARP Inspection (DAI) on managed switches prevents ARP poisoning
+- DHCP Snooping on managed switches prevents rogue DHCP servers
+
+### 🛠️ Lab Output — Full Solo Investigation
+PCAP: `arp-storm.pcap` (wiki.wireshark.org/SampleCaptures)
+- Applied `arp` filter in Wireshark
+- Observed a high-rate flood of ARP requests from a single source (Cisco_af:f4:54) broadcasting "Who has X? Tell 24.166.172.1" for dozens of different target IPs within under 1 second
+- Classic signature of an ARP storm/scan — consistent with the "high ARP rate = ARP flood" indicator covered in theory
+
+### 📌 Summary
+- ARP Poisoning = Layer 2 attack exploiting ARP's lack of authentication to hijack existing connections
+- Rogue DHCP = Layer 3 attack exploiting DHCP's first-offer-wins behavior to hijack new connections
+- DHCP Starvation = resource exhaustion DoS using spoofed MACs
+- Wireshark has a built-in filter (`arp.duplicate-address-detected`) that auto-flags ARP poisoning
+- Both attack families are MITM techniques — detection depends on knowing the normal baseline (one DHCP server, stable ARP mappings)
+
+---
+### 🚀 Progress
+✔ Completed: ARP poisoning, Gratuitous ARP, DHCP DORA, DHCP starvation, Rogue DHCP, detection filters, live PCAP lab  
+📅 Day 20: Layer 2/3 MITM attack detection skills built  
+➡️ Next: TBD
