@@ -1825,4 +1825,149 @@ PCAP: `arp-storm.pcap` (wiki.wireshark.org/SampleCaptures)
 ### 🚀 Progress
 ✔ Completed: ARP poisoning, Gratuitous ARP, DHCP DORA, DHCP starvation, Rogue DHCP, detection filters, live PCAP lab  
 📅 Day 20: Layer 2/3 MITM attack detection skills built  
+➡️ Next: Wireshark Filters Cheatsheet
+
+
+## 📘 Day 21 – Wireshark Filters Cheatsheet
+
+Today I built my master Wireshark filter cheatsheet — organised by
+category — so I can pull up the right filter instantly during any
+investigation instead of searching for it.
+
+### 🔑 Why Filters Matter
+- A PCAP can have millions of packets — without filters you are blind
+- Filters are the difference between a 10-hour investigation and a 10-minute one
+- Every experienced analyst has a personal cheatsheet they use every single day
+
+### 🔄 Display Filter vs Capture Filter
+
+| Type | When Applied | Syntax | Use |
+|---|---|---|---|
+| Capture filter | During live capture | BPF Syntax | Limit what gets captured |
+| Display filter | After capture | Wireshark Syntax | Show/hide packets |
+
+> Always use Display filters for analysis — they are non-destructive (original PCAP unchanged).
+
+### 🔧 Filter Syntax Rules
+
+| Operator | Symbol | Example |
+|---|---|---|
+| Equals | `==` | `ip.src == 192.168.1.1` |
+| Not equals | `!=` | `ip.src != 192.168.1.1` |
+| Greater than | `>` | `ip.ttl > 64` |
+| Less than | `<` | `ip.ttl < 60` |
+| Contains string | `contains` | `http.host contains "google"` |
+| Matches regex | `matches` | `dns.qry.name matches ".*\.ru$"` |
+| Not | `!` | `!dns` |
+| AND | `&&` | `tcp && ip.src == 10.0.0.1` |
+| OR | `\|\|` | `tcp \|\| udp` |
+
+### 📋 The Master Cheatsheet
+
+**1) Basic Protocol Filters:**
+
+| Filter | Shows |
+|---|---|
+| `tcp` | All TCP traffic |
+| `udp` | All UDP traffic |
+| `dns` | All DNS traffic |
+| `http` | All HTTP traffic |
+| `tls` | All TLS/HTTPS traffic |
+| `arp` | All ARP traffic |
+| `icmp` | All ICMP traffic |
+| `smtp` | All SMTP email traffic |
+| `ftp` | All FTP traffic |
+| `ssh` | All SSH traffic |
+
+**2) IP and Port Filters:**
+
+| Filter | Shows |
+|---|---|
+| `ip.src == x.x.x.x` | Traffic FROM specific IP |
+| `ip.dst == x.x.x.x` | Traffic TO specific IP |
+| `ip.addr == x.x.x.x` | Traffic TO or FROM specific IP |
+| `tcp.port == 4444` | Traffic on port 4444 |
+| `tcp.dstport == 443` | Traffic TO port 443 |
+| `tcp.srcport == 80` | Traffic FROM port 80 |
+| `ip.ttl < 10` | Unusually low TTL — suspicious |
+| `ip.frag_offset > 0` | Fragmented packets |
+
+**3) Malware Hunting Filters:**
+
+| Filter | Shows / DFIR Use |
+|---|---|
+| `tcp.flags.syn == 1` | SYN packets (used for port scanning, new connections) |
+| `tcp.flags.syn == 1 && tcp.flags.ack == 0` | SYN only (no ACK) — used for port scan |
+| `tcp.flags.reset == 1` | RST packets (rejected connections) |
+| `tcp.port == 1337` | Common malware port (C2 detection) |
+| `http.request.method == "POST"` | HTTP POST requests (data exfiltration) |
+| `http.request.method == "GET"` | HTTP GET requests (file downloads) |
+| `frame contains "password"` | Packets with "password" (credential theft) |
+| `frame contains "cmd.exe"` | Packets with cmd.exe (malware execution) |
+| `frame contains ".exe"` | EXE file references (malware download) |
+
+**4) DNS Filters:**
+
+| Filter | Shows / DFIR Use |
+|---|---|
+| `dns` | All DNS |
+| `dns.qry.type == 1` | A record queries only (IPv4 lookups) |
+| `dns.flags.rcode == 3` | NXDOMAIN responses (DGA malware failures) |
+| `dns.qry.name contains ".ru"` | .ru domains (often malicious) |
+| `dns.qry.name.len > 50` | Long domain names (DNS tunneling) |
+| `dns.count.answers == 0` | Queries with no answer (failed lookups) |
+
+**5) TLS/HTTPS Filters:**
+
+| Filter | Shows / DFIR Use |
+|---|---|
+| `tls` | All TLS traffic (HTTPS overview) |
+| `tls.handshake.type == 1` | Client Hello only (see SNI) |
+| `tls.handshake.extensions_server_name` | SNI field (C2 domain in encrypted traffic) |
+| `tls.record.version == 0x0300` | SSL 3.0 (old/weak — vulnerable encryption) |
+
+**6) TCP Analysis Filters:**
+
+| Filter | Shows / Use |
+|---|---|
+| `tcp.analysis.retransmission` | Retransmitted packets (connection problems) |
+| `tcp.analysis.duplicate_ack` | Duplicate ACKs (congestion/issues) |
+| `tcp.analysis.zero_window` | Zero window (overwhelmed receiver) |
+| `tcp.stream eq N` | Specific TCP stream N (follow conversation) |
+| `tcp.len > 0` | Packets with data (exclude empty ACKs) |
+
+**7) ARP + DHCP Filters:**
+
+| Filter | Shows / DFIR Use |
+|---|---|
+| `arp` | All ARP (Layer 2 overview) |
+| `arp.opcode == 1` | ARP requests (who is looking?) |
+| `arp.opcode == 2` | ARP replies (who is answering?) |
+| `arp.duplicate-address-detected` | Duplicate MACs (ARP poisoning!) |
+| `bootp` | All DHCP (IP assignment) |
+| `bootp.option.dhcp == 1` | DHCP Discover (new device joining) |
+| `bootp.option.dhcp == 2` | DHCP Offer (check for rogue server) |
+
+**8) Content Search Filters:**
+
+| Filter | Shows / Use |
+|---|---|
+| `frame contains "password"` | Packets containing "password" |
+| `frame contains "admin"` | Packets containing "admin" |
+| `frame contains "gate.php"` | Common C2 URL |
+| `frame contains "cmd.exe"` | Command execution |
+| `http.uri contains "gate"` | HTTP URI search |
+| `http.user_agent contains "curl"` | curl user agent |
+| `http.host contains "pastebin"` | Pastebin (common for malware) |
+
+### 📌 Summary
+- Display filters (Wireshark syntax) are for analysis; capture filters (BPF) are for limiting what gets captured live
+- Combine operators (`&&`, `||`, `!`) to build precise filters instead of scrolling through packets
+- Filters are grouped into 8 categories: protocol, IP/port, malware hunting, DNS, TLS, TCP analysis, ARP/DHCP, and content search
+- This cheatsheet pulls together every filter learned across Days 1–20 into one quick-reference sheet
+
+---
+### 🚀 Progress
+✔ Completed: Display vs capture filters, filter syntax rules, 8-category master filter cheatsheet  
+📅 Day 21: Personal Wireshark cheatsheet built  
 ➡️ Next: TBD
